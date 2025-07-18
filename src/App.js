@@ -440,20 +440,93 @@ const countingSort = async (arr) => {
 
 // Algorithm metadata
 const algorithms = {
-  bubble: { name: 'Bubble Sort', func: bubbleSort, timeComplexity: 'O(n²)', spaceComplexity: 'O(1)', description: 'Compares adjacent elements and swaps them if they are in wrong order' },
-  insertion: { name: 'Insertion Sort', func: insertionSort, timeComplexity: 'O(n²)', spaceComplexity: 'O(1)', description: 'Builds the final sorted array one item at a time' },
-  selection: { name: 'Selection Sort', func: selectionSort, timeComplexity: 'O(n²)', spaceComplexity: 'O(1)', description: 'Finds the minimum element and places it at the beginning' },
-  merge: { name: 'Merge Sort', func: mergeSort, timeComplexity: 'O(n log n)', spaceComplexity: 'O(n)', description: 'Divides array into halves, sorts them and merges back' },
-  quick: { name: 'Quick Sort', func: quickSort, timeComplexity: 'O(n log n)', spaceComplexity: 'O(log n)', description: 'Picks a pivot element and partitions array around it' },
-  heap: { name: 'Heap Sort', func: heapSort, timeComplexity: 'O(n log n)', spaceComplexity: 'O(1)', description: 'Builds a max heap and repeatedly extracts maximum' },
-  shell: { name: 'Shell Sort', func: shellSort, timeComplexity: 'O(n^(3/2))', spaceComplexity: 'O(1)', description: 'Generalization of insertion sort with gap sequence' },
-  counting: { name: 'Counting Sort', func: countingSort, timeComplexity: 'O(n + k)', spaceComplexity: 'O(k)', description: 'Counts occurrences of each element (works for small ranges)' },
-  comb:      { name: 'Comb Sort',              func: combSort,      timeComplexity: 'O(n²)',    spaceComplexity: 'O(1)',    description: 'Bubble with shrinking gap' },
-  cocktail:  { name: 'Cocktail Shaker Sort',   func: cocktailSort,  timeComplexity: 'O(n²)',    spaceComplexity: 'O(1)',    description: 'Bi-directional bubble' },
-  bucket:    { name: 'Bucket Sort',            func: bucketSort,    timeComplexity: 'O(n + k)',  spaceComplexity: 'O(n + k)',description: 'Distribute into buckets' },
-  radix:     { name: 'Radix Sort',             func: radixSort,     timeComplexity: 'O(d·(n + b))',spaceComplexity: 'O(n + b)',description: 'LSD digit-by-digit' }
-
+  bubble: {
+    name: 'Bubble Sort',
+    func: bubbleSort,
+    timeComplexity: 'O(n²) avg, O(n) best',
+    spaceComplexity: 'O(1)',
+    description: 'Repeatedly swap adjacent out‑of‑order items until the list is sorted'
+  },
+  insertion: {
+    name: 'Insertion Sort',
+    func: insertionSort,
+    timeComplexity: 'O(n²) avg, O(n) best',
+    spaceComplexity: 'O(1)',
+    description: 'Build the sorted list one element at a time by inserting into the correct position'
+  },
+  selection: {
+    name: 'Selection Sort',
+    func: selectionSort,
+    timeComplexity: 'O(n²)',
+    spaceComplexity: 'O(1)',
+    description: 'Select the minimum element in each pass and move it to its final spot'
+  },
+  merge: {
+    name: 'Merge Sort',
+    func: mergeSort,
+    timeComplexity: 'O(n log n)',
+    spaceComplexity: 'O(n)',
+    description: 'Recursively split the array and merge sorted halves back together'
+  },
+  quick: {
+    name: 'Quick Sort',
+    func: quickSort,
+    timeComplexity: 'O(n log n) avg, O(n²) worst',
+    spaceComplexity: 'O(log n)',
+    description: 'Partition around a pivot then recursively sort subarrays'
+  },
+  heap: {
+    name: 'Heap Sort',
+    func: heapSort,
+    timeComplexity: 'O(n log n)',
+    spaceComplexity: 'O(1)',
+    description: 'Build a max‑heap and repeatedly extract the largest element'
+  },
+  shell: {
+    name: 'Shell Sort',
+    func: shellSort,
+    timeComplexity: '≈ O(n^(3/2))',
+    spaceComplexity: 'O(1)',
+    description: 'Perform insertion sort with a decreasing gap sequence'
+  },
+  counting: {
+    name: 'Counting Sort',
+    func: countingSort,
+    timeComplexity: 'O(n + k)',
+    spaceComplexity: 'O(k)',
+    description: 'Count the frequency of each value and rebuild the array'
+  },
+  comb: {
+    name: 'Comb Sort',
+    func: combSort,
+    timeComplexity: 'O(n²) worst, better in practice than bubble',
+    spaceComplexity: 'O(1)',
+    description: 'Reduce gaps over passes to eliminate small values faster'
+  },
+  cocktail: {
+    name: 'Cocktail Shaker Sort',
+    func: cocktailSort,
+    timeComplexity: 'O(n²)',
+    spaceComplexity: 'O(1)',
+    description: 'Bidirectional bubble sort that alternates forward and backward passes'
+  },
+  bucket: {
+    name: 'Bucket Sort',
+    func: bucketSort,
+    timeComplexity: 'O(n + k) avg, O(n²) worst',
+    spaceComplexity: 'O(n + k)',
+    description: 'Distribute elements into buckets then sort each bucket individually'
+  },
+  radix: {
+    name: 'Radix Sort',
+    func: radixSort,
+    timeComplexity: 'O(d·(n + b))',
+    spaceComplexity: 'O(n + b)',
+    description: 'Sort numbers by processing digits least‑significant first'
+  }
 };
+
+
 
 // Bar Component
 function Bar({ value, maxValue, state = {}, darkMode, arraySize }) {
