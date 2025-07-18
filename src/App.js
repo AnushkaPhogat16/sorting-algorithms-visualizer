@@ -671,7 +671,7 @@ export default function SortingVisualizer() {
       )}
 
       {/* Visualization */}
-      <div className="flex-1 flex flex-col justify-start items-center overflow-hidden px-4 py-4">
+      <div className="flex-1 flex-shrink-0 flex flex-col justify-start items-center overflow-hidden px-4 py-4">
         <div className="flex items-end justify-center w-full h-3/4 overflow-x-auto">
           <div className="flex items-end justify-center min-h-full">
             {array.map((value, index) => (
