@@ -4,6 +4,7 @@ import { Play, Pause, RotateCcw, Sun, Moon, Info } from 'lucide-react';
 // Sorting Algorithms - Fixed versions
 const bubbleSort = async (arr) => {
   const animations = [];
+  arr = [...arr]; // Create a copy to avoid modifying original
   const n = arr.length;
   
   for (let i = 0; i < n - 1; i++) {
@@ -22,6 +23,7 @@ const bubbleSort = async (arr) => {
 
 const insertionSort = async (arr) => {
   const animations = [];
+  arr = [...arr];
   const n = arr.length;
   
   for (let i = 1; i < n; i++) {
@@ -48,6 +50,7 @@ const insertionSort = async (arr) => {
 
 const selectionSort = async (arr) => {
   const animations = [];
+  arr = [...arr];
   const n = arr.length;
   
   for (let i = 0; i < n - 1; i++) {
@@ -73,6 +76,7 @@ const selectionSort = async (arr) => {
 
 const mergeSort = async (arr) => {
   const animations = [];
+  arr = [...arr];
   
   const merge = (left, mid, right) => {
     const leftArr = [];
@@ -137,6 +141,7 @@ const mergeSort = async (arr) => {
 
 const quickSort = async (arr) => {
   const animations = [];
+  arr = [...arr];
   
   const partition = (low, high) => {
     const pivot = arr[high];
@@ -179,6 +184,7 @@ const quickSort = async (arr) => {
 
 const heapSort = async (arr) => {
   const animations = [];
+  arr = [...arr];
   const n = arr.length;
   
   const heapify = (size, rootIdx) => {
@@ -226,6 +232,7 @@ const heapSort = async (arr) => {
 
 const shellSort = async (arr) => {
   const animations = [];
+  arr = [...arr];
   const n = arr.length;
   
   for (let gap = Math.floor(n / 2); gap > 0; gap = Math.floor(gap / 2)) {
@@ -254,6 +261,7 @@ const shellSort = async (arr) => {
 
 const countingSort = async (arr) => {
   const animations = [];
+  arr = [...arr];
   const max = Math.max(...arr);
   const min = Math.min(...arr);
   const range = max - min + 1;
@@ -336,6 +344,7 @@ export default function SortingVisualizer() {
   const [step, setStep] = useState(0);
   const pauseRef = useRef(false);
   const animationRef = useRef(null);
+  const stopSortingRef = useRef(false);
 
   // Generate random array
   const generate = () => {
@@ -351,6 +360,7 @@ export default function SortingVisualizer() {
 
   // Reset to original array
   const reset = () => {
+    stopSortingRef.current = true; // Stop any ongoing sorting
     setArray([...originalArray]);
     setStatesMap({});
     setAnimations([]);
@@ -366,10 +376,11 @@ export default function SortingVisualizer() {
   const applyAnimation = (animation) => {
     const { type, indices, value } = animation;
     
+    // Only update visual array for display, don't modify the actual sorting array
     setArray(prevArray => {
       const newArray = [...prevArray];
       
-      // Handle array modifications
+      // Handle array modifications for visualization only
       if (type === 'swap' && indices.length === 2) {
         [newArray[indices[0]], newArray[indices[1]]] = [newArray[indices[1]], newArray[indices[0]]];
       } else if (type === 'overwrite' && value !== undefined) {
@@ -430,10 +441,17 @@ export default function SortingVisualizer() {
   // Play all animations
   const playAll = async (animationList) => {
     for (let i = 0; i < animationList.length; i++) {
+      // Check if sorting should stop
+      if (stopSortingRef.current) {
+        setAnimating(false);
+        setPaused(false);
+        return;
+      }
+      
       if (pauseRef.current) {
         await new Promise(resolve => {
           const checkPause = () => {
-            if (!pauseRef.current) {
+            if (!pauseRef.current || stopSortingRef.current) {
               resolve();
             } else {
               setTimeout(checkPause, 100);
@@ -441,6 +459,13 @@ export default function SortingVisualizer() {
           };
           checkPause();
         });
+      }
+      
+      // Double-check after pause
+      if (stopSortingRef.current) {
+        setAnimating(false);
+        setPaused(false);
+        return;
       }
       
       applyAnimation(animationList[i]);
@@ -460,6 +485,7 @@ export default function SortingVisualizer() {
     if (animating) return;
     
     setAnimating(true);
+    stopSortingRef.current = false; // Reset the stop flag
     setPaused(false);
     pauseRef.current = false;
     setStatesMap({});
