@@ -528,7 +528,7 @@ const algorithms = {
 function Bar({ value, maxValue, state = {}, darkMode, arraySize }) {
   const height = Math.max(20, (value / maxValue) * 450);
   const minWidth = arraySize <= 30 ? 35 : arraySize <= 50 ? 25 : arraySize <= 70 ? 18 : 12;
-  const width = Math.max(minWidth, Math.floor(window.innerWidth * 0.8 / arraySize));
+  const width = Math.min(50, Math.max(minWidth, Math.floor(window.innerWidth * 0.8 / arraySize)));
   
   let bg = darkMode ? 'bg-blue-400' : 'bg-blue-500';
   if (state.isComparing) bg = darkMode ? 'bg-yellow-400' : 'bg-yellow-500';
@@ -762,7 +762,7 @@ export default function SortingVisualizer() {
   const maxVal = Math.max(...array);
 
   return (
-    <div className={`w-full h-screen flex flex-col overflow-hidden transition-colors duration-300 ${dark ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-900'}`}>      
+    <div className={`w-full h-screen flex flex-col overflow-hidden transition-colors duration-300 ${dark ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-900'}`}>
       {/* Navbar */}
       <nav className={`${dark ? 'bg-gray-800' : 'bg-white'} shadow-lg p-6 flex justify-between items-center flex-shrink-0`}>
         <h1 className="text-4xl font-bold">Visualizer: Sorting Algorithms</h1>
@@ -893,7 +893,7 @@ export default function SortingVisualizer() {
 
       {/* Visualization */}
       <div className="flex-1 flex-shrink-0 flex flex-col justify-start items-center overflow-hidden px-4 py-4">
-        <div className="flex items-end justify-center w-full h-3/4 overflow-x-auto">
+        <div className="flex items-end justify-center w-full overflow-x-auto" style={{ height: '450px' }}>
           <div className="flex items-end justify-center min-h-full">
             {array.map((value, index) => (
               <Bar 
