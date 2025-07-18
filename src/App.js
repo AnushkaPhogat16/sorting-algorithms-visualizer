@@ -671,8 +671,8 @@ export default function SortingVisualizer() {
       )}
 
       {/* Visualization */}
-      <div className="flex-1 flex flex-col justify-center items-center overflow-hidden px-4 py-8">
-        <div className="flex items-end justify-center w-full h-full overflow-x-auto">
+      <div className="flex-1 flex flex-col justify-start items-center overflow-hidden px-4 py-4">
+        <div className="flex items-end justify-center w-full h-3/4 overflow-x-auto">
           <div className="flex items-end justify-center min-h-full">
             {array.map((value, index) => (
               <Bar 
@@ -689,7 +689,8 @@ export default function SortingVisualizer() {
         
         {/* Legend */}
         <div className="mt-8 w-full max-w-4xl">
-          <h3 className="text-xl font-medium mb-4 text-center">Color Legend</h3>
+          <h3 className="text-xl font-medium mb-4 text-center"></h3>
+          <h3 className="text-xl font-medium mb-4 text-center"></h3>
           <div className="flex flex-wrap justify-center gap-6 text-lg">
             <div className="flex items-center space-x-3">
               <div className={`w-6 h-6 ${dark ? 'bg-blue-400' : 'bg-blue-500'} rounded`}></div>
