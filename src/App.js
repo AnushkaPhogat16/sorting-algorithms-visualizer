@@ -2,6 +2,153 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Play, Pause, RotateCcw, Sun, Moon, Info } from 'lucide-react';
 
 // Sorting Algorithms - Fixed versions
+
+/** Comb Sort */
+const combSort = async (arr) => {
+  const animations = [];
+  arr = [...arr];
+  const n = arr.length;
+  let gap = n;
+  const shrink = 1.3;
+  let sorted = false;
+
+  while (!sorted) {
+    gap = Math.floor(gap / shrink);
+    if (gap <= 1) {
+      gap = 1;
+      sorted = true;
+    }
+    for (let i = 0; i + gap < n; i++) {
+      animations.push({ type: 'compare', indices: [i, i + gap] });
+      if (arr[i] > arr[i + gap]) {
+        animations.push({ type: 'swap', indices: [i, i + gap] });
+        [arr[i], arr[i + gap]] = [arr[i + gap], arr[i]];
+        sorted = false;
+      }
+    }
+  }
+  // mark all sorted
+  for (let i = 0; i < n; i++) animations.push({ type: 'sorted', indices: [i] });
+  return animations;
+};
+
+/** Cocktail Shaker Sort */
+const cocktailSort = async (arr) => {
+  const animations = [];
+  arr = [...arr];
+  let start = 0, end = arr.length - 1, swapped = true;
+
+  while (swapped) {
+    swapped = false;
+    // forward pass
+    for (let i = start; i < end; i++) {
+      animations.push({ type: 'compare', indices: [i, i + 1] });
+      if (arr[i] > arr[i + 1]) {
+        animations.push({ type: 'swap', indices: [i, i + 1] });
+        [arr[i], arr[i + 1]] = [arr[i + 1], arr[i]];
+        swapped = true;
+      }
+    }
+    if (!swapped) break;
+    swapped = false;
+    end--;
+    // backward pass
+    for (let i = end; i > start; i--) {
+      animations.push({ type: 'compare', indices: [i - 1, i] });
+      if (arr[i - 1] > arr[i]) {
+        animations.push({ type: 'swap', indices: [i - 1, i] });
+        [arr[i - 1], arr[i]] = [arr[i], arr[i - 1]];
+        swapped = true;
+      }
+    }
+    start++;
+  }
+  for (let i = 0; i < arr.length; i++) animations.push({ type: 'sorted', indices: [i] });
+  return animations;
+};
+
+/** Bucket Sort (integer buckets) */
+const bucketSort = async (arr) => {
+  const animations = [];
+  arr = [...arr];
+  const n = arr.length;
+  if (n === 0) return animations;
+
+  const min = Math.min(...arr), max = Math.max(...arr);
+  const bucketCount = Math.floor(Math.sqrt(n)) || 1;
+  const range = (max - min + 1) / bucketCount;
+  const buckets = Array.from({ length: bucketCount }, () => []);
+
+  // distribute
+  arr.forEach((v, i) => {
+    const idx = Math.min(bucketCount - 1, Math.floor((v - min) / range));
+    animations.push({ type: 'current', indices: [i] });
+    buckets[idx].push(v);
+  });
+
+  // sort each bucket via insertion and flatten
+  let idx = 0;
+  for (let b = 0; b < buckets.length; b++) {
+    const bucket = buckets[b];
+    // insertion sort on bucket
+    for (let i = 1; i < bucket.length; i++) {
+      let key = bucket[i], j = i - 1;
+      while (j >= 0 && bucket[j] > key) {
+        bucket[j + 1] = bucket[j];
+        j--;
+      }
+      bucket[j + 1] = key;
+    }
+    // overwrite back to arr
+    for (let v of bucket) {
+      animations.push({ type: 'overwrite', indices: [idx], value: v });
+      arr[idx++] = v;
+    }
+  }
+
+  for (let i = 0; i < n; i++) animations.push({ type: 'sorted', indices: [i] });
+  return animations;
+};
+
+/** Radix Sort (LSD, non-negative ints) */
+const radixSort = async (arr) => {
+  const animations = [];
+  arr = [...arr];
+  const n = arr.length;
+  if (n === 0) return animations;
+  const max = Math.max(...arr);
+  let exp = 1;
+
+  while (Math.floor(max / exp) > 0) {
+    const output = Array(n).fill(0);
+    const count = Array(10).fill(0);
+
+    // count digits
+    for (let i = 0; i < n; i++) {
+      const digit = Math.floor((arr[i] / exp) % 10);
+      count[digit]++;
+      animations.push({ type: 'current', indices: [i] });
+    }
+    // cumulative
+    for (let i = 1; i < 10; i++) count[i] += count[i - 1];
+    // build output
+    for (let i = n - 1; i >= 0; i--) {
+      const digit = Math.floor((arr[i] / exp) % 10);
+      const pos = --count[digit];
+      output[pos] = arr[i];
+    }
+    // copy back
+    for (let i = 0; i < n; i++) {
+      animations.push({ type: 'overwrite', indices: [i], value: output[i] });
+      arr[i] = output[i];
+    }
+    exp *= 10;
+  }
+
+  for (let i = 0; i < n; i++) animations.push({ type: 'sorted', indices: [i] });
+  return animations;
+};
+
 const bubbleSort = async (arr) => {
   const animations = [];
   arr = [...arr]; // Create a copy to avoid modifying original
@@ -300,7 +447,12 @@ const algorithms = {
   quick: { name: 'Quick Sort', func: quickSort, timeComplexity: 'O(n log n)', spaceComplexity: 'O(log n)', description: 'Picks a pivot element and partitions array around it' },
   heap: { name: 'Heap Sort', func: heapSort, timeComplexity: 'O(n log n)', spaceComplexity: 'O(1)', description: 'Builds a max heap and repeatedly extracts maximum' },
   shell: { name: 'Shell Sort', func: shellSort, timeComplexity: 'O(n^(3/2))', spaceComplexity: 'O(1)', description: 'Generalization of insertion sort with gap sequence' },
-  counting: { name: 'Counting Sort', func: countingSort, timeComplexity: 'O(n + k)', spaceComplexity: 'O(k)', description: 'Counts occurrences of each element (works for small ranges)' }
+  counting: { name: 'Counting Sort', func: countingSort, timeComplexity: 'O(n + k)', spaceComplexity: 'O(k)', description: 'Counts occurrences of each element (works for small ranges)' },
+  comb:      { name: 'Comb Sort',              func: combSort,      timeComplexity: 'O(n²)',    spaceComplexity: 'O(1)',    description: 'Bubble with shrinking gap' },
+  cocktail:  { name: 'Cocktail Shaker Sort',   func: cocktailSort,  timeComplexity: 'O(n²)',    spaceComplexity: 'O(1)',    description: 'Bi-directional bubble' },
+  bucket:    { name: 'Bucket Sort',            func: bucketSort,    timeComplexity: 'O(n + k)',  spaceComplexity: 'O(n + k)',description: 'Distribute into buckets' },
+  radix:     { name: 'Radix Sort',             func: radixSort,     timeComplexity: 'O(d·(n + b))',spaceComplexity: 'O(n + b)',description: 'LSD digit-by-digit' }
+
 };
 
 // Bar Component
