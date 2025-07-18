@@ -349,6 +349,17 @@ export default function SortingVisualizer() {
     setPaused(false);
   };
 
+  // Reset to original array
+  const reset = () => {
+    setArray([...originalArray]);
+    setStatesMap({});
+    setAnimations([]);
+    setStep(0);
+    setAnimating(false);
+    setPaused(false);
+    pauseRef.current = false;
+  };
+
   useEffect(generate, [size]);
 
   // Apply single animation with proper state management
@@ -593,7 +604,7 @@ export default function SortingVisualizer() {
               </button>
             )}
             <button 
-              onClick={generate} 
+              onClick={reset} 
               className="bg-red-500 hover:bg-red-600 text-white px-6 py-3 text-lg rounded-lg flex items-center transition-colors"
             >
               <RotateCcw className="mr-2" size={20}/>Reset
