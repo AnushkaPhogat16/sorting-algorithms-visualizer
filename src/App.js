@@ -892,7 +892,7 @@ export default function SortingVisualizer() {
       )}
 
       {/* Visualization */}
-      <div className="flex-1 flex-shrink-0 flex flex-col justify-start items-center overflow-hidden px-4 py-4">
+      <div className="relative flex-1 flex-shrink-0 flex flex-col justify-start items-center overflow-hidden px-4 py-4">
         <div className="flex items-end justify-center w-full overflow-x-auto" style={{ height: '450px' }}>
           <div className="flex items-end justify-center min-h-full">
             {array.map((value, index) => (
@@ -906,6 +906,13 @@ export default function SortingVisualizer() {
               />
             ))}
           </div>
+          {/* Status */}
+          {animating && (
+            <div className="absolute bottom-0 left-0 w-full p-6 text-center bg-opacity-80 bg-white dark:bg-gray-800 z-10">
+              <p className="text-2xl font-semibold">{paused ? 'Paused' : 'Sorting'}: {currentAlgo.name}</p>
+              <p className="text-lg opacity-75 mt-2">Step {step} of {animations.length}</p>
+            </div>
+          )}
         </div>
         
         {/* Legend */}
@@ -941,13 +948,7 @@ export default function SortingVisualizer() {
         </div>
       </div>
 
-      {/* Status */}
-      {animating && (
-        <div className="p-6 text-center flex-shrink-0">
-          <p className="text-2xl font-semibold">{paused ? 'Paused' : 'Sorting'}: {currentAlgo.name}</p>
-          <p className="text-lg opacity-75 mt-2">Step {step} of {animations.length}</p>
-        </div>
-      )}
+      
 
       {/* Footer */}
       <div className={`${dark ? 'bg-gray-800' : 'bg-white'} p-4 border-t ${dark ? 'border-gray-700' : 'border-gray-200'} flex-shrink-0`}>
