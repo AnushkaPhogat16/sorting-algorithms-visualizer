@@ -544,7 +544,7 @@ export default function SortingVisualizer() {
     <div className={`w-full h-screen flex flex-col overflow-hidden transition-colors duration-300 ${dark ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-900'}`}>      
       {/* Navbar */}
       <nav className={`${dark ? 'bg-gray-800' : 'bg-white'} shadow-lg p-6 flex justify-between items-center flex-shrink-0`}>
-        <h1 className="text-4xl font-bold">Sorting Visualizer</h1>
+        <h1 className="text-4xl font-bold">AlgoSort Visualizer</h1>
         <div className="flex items-center space-x-4">
           <button onClick={() => setDark(d => !d)} className="p-3 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700">
             {dark ? <Sun size={24} /> : <Moon size={24} />}
