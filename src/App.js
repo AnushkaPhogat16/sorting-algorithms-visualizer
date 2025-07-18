@@ -72,72 +72,76 @@ const bucketSort = async (arr) => {
   const animations = [];
   arr = [...arr];
   const n = arr.length;
-  if (n === 0) return animations;
+  if (!n) return animations;
 
   const min = Math.min(...arr), max = Math.max(...arr);
   const bucketCount = Math.floor(Math.sqrt(n)) || 1;
   const range = (max - min + 1) / bucketCount;
   const buckets = Array.from({ length: bucketCount }, () => []);
 
-  // distribute
+  // ① distribute into buckets
   arr.forEach((v, i) => {
     const idx = Math.min(bucketCount - 1, Math.floor((v - min) / range));
-    animations.push({ type: 'current', indices: [i] });
+    animations.push({ type: 'compare', indices: [i, i] }); // highlight item
     buckets[idx].push(v);
   });
 
-  // sort each bucket via insertion and flatten
-  let idx = 0;
-  for (let b = 0; b < buckets.length; b++) {
-    const bucket = buckets[b];
-    // insertion sort on bucket
+  // ② sort inside each bucket (insertion + animations)
+  let write = 0;
+  buckets.forEach((bucket, bIndex) => {
+    // insertion sort with animations
     for (let i = 1; i < bucket.length; i++) {
       let key = bucket[i], j = i - 1;
-      while (j >= 0 && bucket[j] > key) {
+      while (j >= 0) {
+        animations.push({ type: 'compare', indices: [ /* map to write+j */ write + j, write + i ] });
+        if (bucket[j] <= key) break;
+        animations.push({ type: 'swap', indices: [ write + j + 1, write + j ] });
         bucket[j + 1] = bucket[j];
         j--;
       }
       bucket[j + 1] = key;
     }
-    // overwrite back to arr
-    for (let v of bucket) {
-      animations.push({ type: 'overwrite', indices: [idx], value: v });
-      arr[idx++] = v;
-    }
-  }
+    // ③ write back with overwrite animations
+    bucket.forEach(v => {
+      animations.push({ type: 'overwrite', indices: [write], value: v });
+      arr[write++] = v;
+    });
+  });
 
+  // final “all sorted”
   for (let i = 0; i < n; i++) animations.push({ type: 'sorted', indices: [i] });
   return animations;
 };
+
 
 /** Radix Sort (LSD, non-negative ints) */
 const radixSort = async (arr) => {
   const animations = [];
   arr = [...arr];
   const n = arr.length;
-  if (n === 0) return animations;
+  if (!n) return animations;
   const max = Math.max(...arr);
   let exp = 1;
 
   while (Math.floor(max / exp) > 0) {
-    const output = Array(n).fill(0);
-    const count = Array(10).fill(0);
+    const output = Array(n), count = Array(10).fill(0);
 
-    // count digits
+    // ① count digits with highlight
     for (let i = 0; i < n; i++) {
-      const digit = Math.floor((arr[i] / exp) % 10);
-      count[digit]++;
-      animations.push({ type: 'current', indices: [i] });
+      const d = Math.floor((arr[i] / exp) % 10);
+      animations.push({ type: 'compare', indices: [i, i] });
+      count[d]++;
     }
-    // cumulative
+    // ② cumulative
     for (let i = 1; i < 10; i++) count[i] += count[i - 1];
-    // build output
+    // ③ build output backwards to keep stable
     for (let i = n - 1; i >= 0; i--) {
-      const digit = Math.floor((arr[i] / exp) % 10);
-      const pos = --count[digit];
+      const d = Math.floor((arr[i] / exp) % 10);
+      const pos = --count[d];
+      animations.push({ type: 'overwrite', indices: [pos], value: arr[i] });
       output[pos] = arr[i];
     }
-    // copy back
+    // ④ copy back
     for (let i = 0; i < n; i++) {
       animations.push({ type: 'overwrite', indices: [i], value: output[i] });
       arr[i] = output[i];
@@ -145,9 +149,11 @@ const radixSort = async (arr) => {
     exp *= 10;
   }
 
+  // final “all sorted”
   for (let i = 0; i < n; i++) animations.push({ type: 'sorted', indices: [i] });
   return animations;
 };
+
 
 const bubbleSort = async (arr) => {
   const animations = [];
@@ -168,33 +174,39 @@ const bubbleSort = async (arr) => {
   return animations;
 };
 
+/** Insertion Sort */
 const insertionSort = async (arr) => {
   const animations = [];
   arr = [...arr];
   const n = arr.length;
-  
+
   for (let i = 1; i < n; i++) {
     let key = arr[i];
     let j = i - 1;
     animations.push({ type: 'current', indices: [i] });
-    
+
+    // shift larger elements right
     while (j >= 0 && arr[j] > key) {
       animations.push({ type: 'compare', indices: [j, j + 1] });
-      animations.push({ type: 'swap', indices: [j, j + 1] });
+      // visualize the shift
+      animations.push({ type: 'overwrite', indices: [j + 1], value: arr[j] });
       arr[j + 1] = arr[j];
       j--;
     }
+    // place the key into its slot
     arr[j + 1] = key;
+    // **critical**: tell the visualizer the new value here
+    animations.push({ type: 'overwrite', indices: [j + 1], value: key });
+    // then you can still mark it “placed” if you like
     animations.push({ type: 'placed', indices: [j + 1] });
   }
-  
-  // Mark all as sorted
+
+  // finally mark everything sorted
   for (let i = 0; i < n; i++) {
     animations.push({ type: 'sorted', indices: [i] });
   }
   return animations;
 };
-
 const selectionSort = async (arr) => {
   const animations = [];
   arr = [...arr];
@@ -224,110 +236,89 @@ const selectionSort = async (arr) => {
 const mergeSort = async (arr) => {
   const animations = [];
   arr = [...arr];
-  
+
   const merge = (left, mid, right) => {
-    const leftArr = [];
-    const rightArr = [];
-    
-    // Copy data to temp arrays
-    for (let i = left; i <= mid; i++) {
-      leftArr.push(arr[i]);
-    }
-    for (let i = mid + 1; i <= right; i++) {
-      rightArr.push(arr[i]);
-    }
-    
+    const leftArr = [], rightArr = [];
+    for (let i = left; i <= mid; i++)      leftArr.push(arr[i]);
+    for (let i = mid + 1; i <= right; i++) rightArr.push(arr[i]);
+
     let i = 0, j = 0, k = left;
-    
     while (i < leftArr.length && j < rightArr.length) {
-      animations.push({ type: 'compare', indices: [k, k] });
+      // compare actual left vs right indices
+      animations.push({ type: 'compare', indices: [left + i, mid + 1 + j] });
+
       if (leftArr[i] <= rightArr[j]) {
-        arr[k] = leftArr[i];
         animations.push({ type: 'overwrite', indices: [k], value: leftArr[i] });
-        i++;
+        arr[k++] = leftArr[i++];
       } else {
-        arr[k] = rightArr[j];
         animations.push({ type: 'overwrite', indices: [k], value: rightArr[j] });
-        j++;
+        arr[k++] = rightArr[j++];
       }
-      k++;
     }
-    
+    // flush remainders
     while (i < leftArr.length) {
-      arr[k] = leftArr[i];
       animations.push({ type: 'overwrite', indices: [k], value: leftArr[i] });
-      i++;
-      k++;
+      arr[k++] = leftArr[i++];
     }
-    
     while (j < rightArr.length) {
-      arr[k] = rightArr[j];
       animations.push({ type: 'overwrite', indices: [k], value: rightArr[j] });
-      j++;
-      k++;
+      arr[k++] = rightArr[j++];
     }
   };
-  
-  const mergeSortHelper = (left, right) => {
-    if (left < right) {
-      const mid = Math.floor((left + right) / 2);
-      mergeSortHelper(left, mid);
-      mergeSortHelper(mid + 1, right);
-      merge(left, mid, right);
+
+  const helper = (l, r) => {
+    if (l < r) {
+      const m = Math.floor((l + r) / 2);
+      helper(l, m);
+      helper(m + 1, r);
+      merge(l, m, r);
     }
   };
-  
-  mergeSortHelper(0, arr.length - 1);
-  
-  // Mark all as sorted
+
+  helper(0, arr.length - 1);
+  // final “all sorted”
   for (let i = 0; i < arr.length; i++) {
     animations.push({ type: 'sorted', indices: [i] });
   }
   return animations;
 };
 
+
 const quickSort = async (arr) => {
   const animations = [];
   arr = [...arr];
-  
+
   const partition = (low, high) => {
-    const pivot = arr[high];
     animations.push({ type: 'pivot', indices: [high] });
+    const pivot = arr[high];
     let i = low - 1;
-    
     for (let j = low; j < high; j++) {
       animations.push({ type: 'compare', indices: [j, high] });
       if (arr[j] < pivot) {
         i++;
-        if (i !== j) {
-          animations.push({ type: 'swap', indices: [i, j] });
-          [arr[i], arr[j]] = [arr[j], arr[i]];
-        }
+        animations.push({ type: 'swap', indices: [i, j] });
+        [arr[i], arr[j]] = [arr[j], arr[i]];
       }
     }
-    
     animations.push({ type: 'swap', indices: [i + 1, high] });
     [arr[i + 1], arr[high]] = [arr[high], arr[i + 1]];
     return i + 1;
   };
-  
-  const quickSortHelper = (low, high) => {
+
+  const helper = (low, high) => {
     if (low < high) {
       const pi = partition(low, high);
       animations.push({ type: 'sorted', indices: [pi] });
-      quickSortHelper(low, pi - 1);
-      quickSortHelper(pi + 1, high);
+      helper(low, pi - 1);
+      helper(pi + 1, high);
     }
   };
-  
-  quickSortHelper(0, arr.length - 1);
-  
-  // Mark all as sorted
-  for (let i = 0; i < arr.length; i++) {
-    animations.push({ type: 'sorted', indices: [i] });
-  }
+
+  helper(0, arr.length - 1);
+  for (let i = 0; i < arr.length; i++) animations.push({ type: 'sorted', indices: [i] });
   return animations;
 };
+
 
 const heapSort = async (arr) => {
   const animations = [];
@@ -377,29 +368,34 @@ const heapSort = async (arr) => {
   return animations;
 };
 
+/** Shell Sort */
 const shellSort = async (arr) => {
   const animations = [];
   arr = [...arr];
   const n = arr.length;
-  
+
   for (let gap = Math.floor(n / 2); gap > 0; gap = Math.floor(gap / 2)) {
     for (let i = gap; i < n; i++) {
       const temp = arr[i];
       let j = i;
       animations.push({ type: 'current', indices: [i] });
-      
+
       while (j >= gap && arr[j - gap] > temp) {
         animations.push({ type: 'compare', indices: [j, j - gap] });
-        animations.push({ type: 'swap', indices: [j, j - gap] });
+        // move element right
+        animations.push({ type: 'overwrite', indices: [j], value: arr[j - gap] });
         arr[j] = arr[j - gap];
         j -= gap;
       }
+
+      // finally put temp into its position
       arr[j] = temp;
+      animations.push({ type: 'overwrite', indices: [j], value: temp });
       animations.push({ type: 'placed', indices: [j] });
     }
   }
-  
-  // Mark all as sorted
+
+  // mark sorted
   for (let i = 0; i < n; i++) {
     animations.push({ type: 'sorted', indices: [i] });
   }
