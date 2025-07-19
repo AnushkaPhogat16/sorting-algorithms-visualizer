@@ -556,7 +556,8 @@ export default function SortingVisualizer() {
   const [size, setSize] = useState(30);
   const [speed, setSpeed] = useState(100);
   const [algoKey, setAlgoKey] = useState('bubble');
-  const [dark, setDark] = useState(false);
+  const [dark, setDark] = useState(true);
+
   const [animating, setAnimating] = useState(false);
   const [paused, setPaused] = useState(false);
   const [statesMap, setStatesMap] = useState({});
