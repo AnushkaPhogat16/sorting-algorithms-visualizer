@@ -758,6 +758,19 @@ export default function SortingVisualizer() {
       setStep(step + 1);
     }
   };
+  const prevStep = () => {
+    if (step > 0) {
+      // reset everything
+      setArray([...originalArray]);
+      setStatesMap({});
+      // replay up to one step before
+      for (let i = 0; i < step - 1; i++) {
+        applyAnimation(animations[i]);
+      }
+      setStep(step - 1);
+    }
+  };
+
 
   const currentAlgo = algorithms[algoKey];
   const maxVal = Math.max(...array);
@@ -881,7 +894,14 @@ export default function SortingVisualizer() {
 
       {/* Step Mode Controls */}
       {stepMode && (
-        <div className="p-6 text-center flex-shrink-0">
+        <div className="p-6 text-center flex-shrink-0 space-x-4">
+          <button 
+            onClick={prevStep} 
+            disabled={step === 0} 
+            className="bg-gray-500 hover:bg-gray-600 disabled:bg-gray-300 text-white px-6 py-3 text-lg rounded-lg transition-colors"
+          >
+            Prev Step
+          </button>
           <button 
             onClick={nextStep} 
             disabled={step >= animations.length} 
@@ -891,6 +911,7 @@ export default function SortingVisualizer() {
           </button>
         </div>
       )}
+
 
       {/* Visualization */}
       <div className="flex-1 flex-shrink-0 flex flex-col justify-start items-center overflow-hidden px-4 py-4">
